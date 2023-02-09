@@ -19,9 +19,13 @@ mongoose.set('strictQuery', true);
 
 main().catch(err => console.log(err));
 async function main() {
-  await mongoose.connect(url);
-  console.log("MongoDB connected Successfully")
+    await mongoose.connect(url);
+    console.log("MongoDB connected Successfully")
 }
+
+app.get('/favicon.ico', (req, res) => {
+    return 'your faveicon'
+})
 
 const itemSchema = {
     name: {
@@ -50,7 +54,7 @@ const listSchema = {
     items: [itemSchema]
 }
 
-const List = mongoose.model("list", listSchema);
+const List = mongoose.model("List", listSchema);
 
 
 
@@ -95,6 +99,7 @@ app.post("/", function (req, res) {
             console.log("FoundList : " + foundList);
             foundList.items.push(item);
             foundList.save();
+            console.log("SSSSSSSSSSSSSSSSSSSSSSSSSS" + listName)
             res.redirect("/" + listName);
         });
     }
@@ -104,33 +109,32 @@ app.post("/", function (req, res) {
 });
 app.get("/:customListName", function (req, res) {
     const customListName = _.capitalize(req.params.customListName);
-    console.log(req.params)
+    console.log("sdasdasd" + req.params)
     console.log(customListName)
-    List.findOne({ name: customListName }, function (err, foundList) {
+    List.findOne({ name: customListName }, function (err, foundedList) {
         if (!err) {
-            if (!foundList) {
+            if (!foundedList) {
                 //Create new List
                 console.log("Document can be inserterd");
                 const list = new List({
                     name: customListName,
                     items: defaultArray
-                })
+                });
                 list.save()
                 console.log("Document Inserted Successfully : " + list.name)
                 res.redirect("/" + customListName)
             } else {
                 console.log("Document is already present with name : " + customListName);
-                res.render("list", { listTitle: foundList.name, newItems: foundList.items });
+                res.render("list", { listTitle: foundedList.name, newItems: foundedList.items });
             }
         }
     });
-
 });
 
 
 app.post("/delete", function (req, res) {
     // let selectedItemID = 'ObjectId("' + req.body.checkedList + '")';
-    let selectedItemID = req.body.checkedList ;
+    let selectedItemID = req.body.checkedList;
     let currentListName = req.body.listName;
     console.log(selectedItemID);
     // console.log(currentListName);
@@ -146,12 +150,12 @@ app.post("/delete", function (req, res) {
             }
         });
     } else {
-        List.findOneAndUpdate({ name: currentListName},
-            { $pull: { "items": { "_id": selectedItemID } } }, function(err, foundList) {
-                if(!err){
-                    res.redirect("/"+currentListName);
+        List.findOneAndUpdate({ name: currentListName },
+            { $pull: { "items": { "_id": selectedItemID } } }, function (err, foundList) {
+                if (!err) {
+                    res.redirect("/" + currentListName);
                 }
-        });
+            });
     }
 });
 
